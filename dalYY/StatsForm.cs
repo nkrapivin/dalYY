@@ -22,7 +22,7 @@ namespace dalYY
 
         public void SetStats(int fps, uint used, ulong free, RunnerSocketState state)
         {
-            labelStats.Text = string.Format(OrigText, fps, used, free, state);
+            labelStats.Text = string.Format(OrigText, fps, used / 1024.0, free / 1048576.0, state);
         }
     }
 }

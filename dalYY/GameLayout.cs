@@ -114,7 +114,7 @@ namespace dalYY
                 obj.MaskIndex = reader.ReadInt32();
                 obj.Depth = reader.ReadInt32();
                 obj.Parent = reader.ReadInt32();
-                obj.Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
+                obj.Name = Read_String(reader);
                 obj.Events = new List<YYEvent>[15];
                 for (int j = 0; j <= 14; i++)
                 {

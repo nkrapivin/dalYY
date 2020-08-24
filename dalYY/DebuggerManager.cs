@@ -90,7 +90,7 @@ namespace dalYY
 
         public void ReadPingResults(BinaryReader reader)
         {
-            int pingRunning = reader.ReadInt32();
+            uint pingRunning = reader.ReadUInt32();
             uint sendID = reader.ReadUInt32();
 
             if (SendID != sendID)
@@ -98,15 +98,23 @@ namespace dalYY
                 Console.WriteLine("SendID mismatch! One of the sides is ROLLING AROUND AT THE TOP SPEED OF SOUND");
             }
 
-            if (pingRunning == 0)
-            {
-                Console.WriteLine("Runner seems to ignore us! >:(");
-            }
-
             FPS = reader.ReadInt32();
             UsedMem = reader.ReadUInt32();
             FreeMem = reader.ReadUInt64();
-            DebugOutput = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
+            DebugOutput = ReadString(reader);
+        }
+
+        public string ReadString(BinaryReader reader)
+        {
+            int num = reader.ReadInt32();
+            string text = "";
+            for (num--; num > 0; num--)
+            {
+                text += (char)(reader.ReadByte() & 0xFF);
+            }
+            reader.ReadByte();
+
+            return text;
         }
 
         public bool Update(bool run)

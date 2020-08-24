@@ -12,14 +12,28 @@ namespace dalYY
 {
     public partial class DebugOutputForm : Form
     {
+        public StringBuilder Builder { get; set; }
+
         public DebugOutputForm()
         {
             InitializeComponent();
+            Builder = new StringBuilder();
         }
 
         public void SetText(string text)
         {
-            DebugLogBox.Text = text;
+            if (text.Length <= 0) return;
+
+            string value = text.Replace("\n", Environment.NewLine);
+            Builder.Append(value);
+
+            DebugLogBox.Text = Builder.ToString();
+        }
+
+        public void AddText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            DebugLogBox.Text += text;
         }
     }
 }

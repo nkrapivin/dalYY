@@ -25,6 +25,7 @@ namespace dalYY
         private StatsForm STF { get; set; }
         private DebugOutputForm DOF { get; set; }
         private ConnectionOutputForm COF { get; set; }
+        private AllInstancesForm AIF { get; set; }
 
         private void Trace(string msg) => COF.Trace(msg);
 
@@ -68,6 +69,10 @@ namespace dalYY
             COF = new ConnectionOutputForm();
             COF.MdiParent = this;
             COF.Show();
+
+            AIF = new AllInstancesForm();
+            AIF.MdiParent = this;
+            AIF.Show();
         }
 
         private void Connect()
@@ -87,6 +92,8 @@ namespace dalYY
 
             if (ret == RunnerConnErr.None)
             {
+                DebugSocket.SendCommand((int)RunnerCommand.StartTarget);
+                int num = DebugSocket.Recieve();
                 while (true)
                 {
                     bool isret  = Manager.IsRunning();
@@ -103,7 +110,17 @@ namespace dalYY
         private void debugTimer_Tick(object sender, EventArgs e)
         {
             STF.SetStats(Manager.FPS, Manager.UsedMem, Manager.FreeMem, DebugSocket.State);
-            if (Manager.DebugOutput.Length > 2) DOF.SetText(Manager.DebugOutput);
+            DOF.SetText(Manager.DebugOutput);
+        }
+
+        private void DebuggerForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pauseToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
