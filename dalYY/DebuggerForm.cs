@@ -15,14 +15,18 @@ namespace dalYY
 {
     public partial class DebuggerForm : Form
     {
-        private void Trace(string msg) => LogBox.Text += msg + Environment.NewLine;
-
         private string IP { get; set; }
         private int PORT { get; set; }
         private string YYDEBUG_PATH { get; set; }
         private YYDebug GameData { get; set; }
         private RunnerSocket DebugSocket { get; set; }
         private DebuggerManager Manager { get; set; }
+
+        private StatsForm STF { get; set; }
+        private DebugOutputForm DOF { get; set; }
+        private ConnectionOutputForm COF { get; set; }
+
+        private void Trace(string msg) => COF.Trace(msg);
 
         public DebuggerForm()
         {
@@ -38,6 +42,8 @@ namespace dalYY
 
         private void DebuggerForm_Shown(object sender, EventArgs e)
         {
+            InitForms();
+
             Trace("Loading .yydebug...");
             GameData = new YYDebug(File.OpenRead(YYDEBUG_PATH));
             GameData.Load();
@@ -47,6 +53,21 @@ namespace dalYY
             DebugSocket.YYDbg = GameData;
             Manager = new DebuggerManager(DebugSocket);
             Connect();
+        }
+
+        private void InitForms()
+        {
+            STF = new StatsForm();
+            STF.MdiParent = this;
+            STF.Show();
+
+            DOF = new DebugOutputForm();
+            DOF.MdiParent = this;
+            DOF.Show();
+
+            COF = new ConnectionOutputForm();
+            COF.MdiParent = this;
+            COF.Show();
         }
 
         private void Connect()
@@ -81,10 +102,8 @@ namespace dalYY
 
         private void debugTimer_Tick(object sender, EventArgs e)
         {
-            labelFPS.Text = $"FPS: {Manager.FPS}";
-            labelUsedMem.Text = $"Used MEM: {Manager.UsedMem}";
-            labelFreeMem.Text = $"Free MEM: {Manager.FreeMem}";
-            if (Manager.DebugOutput.Length > 2) dbgOutputBox.Text = Manager.DebugOutput;
+            STF.SetStats(Manager.FPS, Manager.UsedMem, Manager.FreeMem, DebugSocket.State);
+            if (Manager.DebugOutput.Length > 2) DOF.SetText(Manager.DebugOutput);
         }
     }
 }

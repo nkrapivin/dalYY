@@ -89,8 +89,8 @@ namespace dalYY
             SaveConfig(APPLICATION_DIR + CONF_FILE);
             var frm = new DebuggerForm();
             frm.SetParams(tbtIP.Text, int.Parse(tbtPort.Text), tbtYYDebug.Text);
-            //Close();
             frm.Show();
+            Close();
         }
 
         private void btnChooseFile_Click(object sender, EventArgs e)

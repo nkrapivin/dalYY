@@ -78,6 +78,7 @@ namespace dalYY
                         ReadUpdateResults(reader);
                         break;
                     }
+                default: break;
             }
         }
 
