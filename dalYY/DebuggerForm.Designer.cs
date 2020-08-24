@@ -34,7 +34,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.pauseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.continueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.restartToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -55,7 +55,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.pauseToolStripMenuItem,
             this.continueToolStripMenuItem,
-            this.stopToolStripMenuItem});
+            this.restartToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1469, 24);
@@ -74,12 +74,14 @@
             this.continueToolStripMenuItem.Name = "continueToolStripMenuItem";
             this.continueToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
             this.continueToolStripMenuItem.Text = "Continue";
+            this.continueToolStripMenuItem.Click += new System.EventHandler(this.continueToolStripMenuItem_Click);
             // 
-            // stopToolStripMenuItem
+            // restartToolStripMenuItem
             // 
-            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
-            this.stopToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
-            this.stopToolStripMenuItem.Text = "Stop";
+            this.restartToolStripMenuItem.Name = "restartToolStripMenuItem";
+            this.restartToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
+            this.restartToolStripMenuItem.Text = "Restart";
+            this.restartToolStripMenuItem.Click += new System.EventHandler(this.restartToolStripMenuItem_Click);
             // 
             // DebuggerForm
             // 
@@ -106,6 +108,6 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem pauseToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem continueToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem restartToolStripMenuItem;
     }
 }

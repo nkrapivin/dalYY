@@ -91,7 +91,9 @@
     </Compile>
     <Compile Include="YYDebug.cs" />
     <Compile Include="YYEvent.cs" />
+    <Compile Include="YYInstance.cs" />
     <Compile Include="YYObject.cs" />
+    <Compile Include="YYVariable.cs" />
     <EmbeddedResource Include="AllInstancesForm.resx">
       <DependentUpon>AllInstancesForm.cs</DependentUpon>
     </EmbeddedResource>

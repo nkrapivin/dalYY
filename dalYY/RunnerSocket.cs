@@ -304,7 +304,7 @@ namespace dalYY
 					throw new Exception("Could not send GetGameData command!");
                 }
 
-				HeaderData = new byte[1048576 * 2];
+				HeaderData = new byte[1048576];
 				HeaderStream = new MemoryStream(HeaderData);
 				HeaderReader = new BinaryReader(HeaderStream);
 

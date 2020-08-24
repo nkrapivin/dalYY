@@ -1,7 +1,9 @@
-﻿namespace dalYY
+﻿using System.Runtime.CompilerServices;
+
+namespace dalYY
 {
-    public struct GMValue
-    {
+	public class GMValue
+	{
 		public enum GMValueType : uint
 		{
 			Real,
@@ -27,16 +29,32 @@
 		}
 
 		public enum GMJsonKind : uint
-        {
+		{
 			Mask = 4026531840u,
 			Map = 2147483648u,
 			List = 1073741824u
 		}
 
-		public GMValueType ValType;
-		public double Number;
-		public string String;
-		public ulong ArrayPtr;
-		public GMJsonKind Tag;
-	}
+		public string Name { get; set; }
+		public GMValueType ValType { get; set; }
+		public double Number { get; set; }
+		public string String { get; set; }
+		public ulong ArrayPtr { get; set; }
+		public GMJsonKind Tag { get; set; }
+
+        public override string ToString()
+        {
+            switch (ValType)
+            {
+				case GMValueType.String:
+                    {
+						return $"{Name} | {String}";
+                    }
+				default:
+                    {
+						return $"{Name} | {Number}";
+                    }
+            }
+        }
+    }
 }

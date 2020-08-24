@@ -82,6 +82,7 @@ namespace dalYY
                 Trace("Invalid port! Out of allowed range (0-65535)");
                 return;
             }
+
             debugWorker.RunWorkerAsync();
         }
 
@@ -93,11 +94,28 @@ namespace dalYY
             if (ret == RunnerConnErr.None)
             {
                 DebugSocket.SendCommand((int)RunnerCommand.StartTarget);
-                int num = DebugSocket.Recieve();
+                DebugSocket.Recieve();
                 while (true)
                 {
-                    bool isret  = Manager.IsRunning();
-                    bool updret = Manager.Update(isret);
+                    var is_run_ret = Manager.IsRunning();
+                    Manager.Update(is_run_ret);
+
+
+                    // "All Instances"
+
+                    /*
+                    Manager.BeginBatch();
+                    Manager.AddCommand(RunnerCommand.GetInstanceData);
+                    // watches/breakpoints/etc
+                    Manager.EndBatch();
+                    Manager.SendBatch();
+                    bool ok = Manager.Recieve();
+                    if (ok)
+                    {
+                        Console.WriteLine("Reading inst batch result...");
+                        Manager.ReadResults();
+                    }
+                    */
                 }
             }
         }
@@ -111,6 +129,7 @@ namespace dalYY
         {
             STF.SetStats(Manager.FPS, Manager.UsedMem, Manager.FreeMem, DebugSocket.State);
             DOF.SetText(Manager.DebugOutput);
+            AIF.UpdateInstances(Manager.AllInstances);
         }
 
         private void DebuggerForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -120,7 +139,17 @@ namespace dalYY
 
         private void pauseToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Manager.StopRunner();
+        }
 
+        private void continueToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Manager.ContinueRunner();
+        }
+
+        private void restartToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Manager.RestartRunner();
         }
     }
 }

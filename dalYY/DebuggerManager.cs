@@ -32,11 +32,16 @@ namespace dalYY
         public ulong FreeMem { get; set; }
         public string DebugOutput { get; set; }
 
+        public List<YYInstance> AllInstances { get; set; }
+
         public DebuggerManager(RunnerSocket sck)
         {
             Socket = sck;
             DebugOutput = string.Empty;
+            AllInstances = new List<YYInstance>();
         }
+
+        
 
         public bool ReadResults()
         {
@@ -78,14 +83,53 @@ namespace dalYY
                         ReadUpdateResults(reader);
                         break;
                     }
+                case RunnerCommand.GetInstanceData:
+                    {
+                        ReadInstanceResults(reader);
+                        break;
+                    }
                 default: break;
             }
         }
 
-        public void ReadUpdateResults(BinaryReader reader)
+        public void ReadInstanceResults(BinaryReader reader)
         {
-            uint flag = reader.ReadUInt32();
-            //Console.WriteLine(flag);
+            int len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                bool exists = reader.ReadInt32() != 0;
+                if (exists)
+                {
+                    var __inst = new YYInstance();
+                    __inst.Serialize(reader);
+                    AllInstances.Add(__inst);
+                }
+                else
+                {
+                    Console.WriteLine("No instance exists for ID " + i.ToString());
+                }
+            }
+        }
+
+        public bool ReadUpdateResults(BinaryReader reader)
+        {
+            bool flag = reader.ReadUInt32() != 0;
+            bool ret = (!flag) ? ReadRunningUpdate(reader) : ReadStoppedUpdate(reader);
+            return ret;
+        }
+
+        public bool ReadRunningUpdate(BinaryReader reader)
+        {
+
+
+            return true;
+        }
+
+        public bool ReadStoppedUpdate(BinaryReader reader)
+        {
+
+
+            return true;
         }
 
         public void ReadPingResults(BinaryReader reader)
@@ -122,7 +166,7 @@ namespace dalYY
             if (!run) return false;
 
             BeginBatch();
-            AddCommand(RunnerCommand.GetUpdate, 1);
+            AddCommand(RunnerCommand.GetUpdate, 0x20);
             EndBatch();
             SendBatch();
             bool ret = Recieve();
@@ -195,8 +239,33 @@ namespace dalYY
                             BatchWriter.Write((int)args[0]); // flags
                             break;
                         }
+                    case RunnerCommand.GetInstanceData:
+                        {
+                            BatchCmdCount++;
+                            BatchWriter.Write((int)RunnerCommand.GetInstanceData);
+
+                            break;
+                        }
                 }
             }
+        }
+
+        public bool StopRunner()
+        {
+            bool result = Socket.SendCommand((int)RunnerCommand.StopTarget);
+            return result;
+        }
+
+        public bool RestartRunner()
+        {
+            bool result = Socket.SendCommand((int)RunnerCommand.RestartTarget);
+            return result;
+        }
+
+        public bool ContinueRunner()
+        {
+            bool result = Socket.SendCommand((int)RunnerCommand.StartTarget);
+            return result;
         }
 
         public void EndBatch()

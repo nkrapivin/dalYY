@@ -78,7 +78,6 @@ namespace dalYY
             }
             Read_OBJT(reader);
 
-            
             if (ReadString(reader) != "TRCS")
             {
                 Console.WriteLine("Wrong chunk name. Expected SCRT");
@@ -116,14 +115,14 @@ namespace dalYY
                 obj.Parent = reader.ReadInt32();
                 obj.Name = Read_String(reader);
                 obj.Events = new List<YYEvent>[15];
-                for (int j = 0; j <= 14; i++)
+                for (int j = 0; j <= 14; j++)
                 {
                     obj.Events[j] = new List<YYEvent>();
                     int ev_len = reader.ReadInt32();
                     for (int k = 0; k < ev_len; k++)
                     {
                         var ev = new YYEvent();
-                        //..
+                        ev.Load(reader, obj);
                         obj.Events[j].Add(ev);
                     }
                 }

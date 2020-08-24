@@ -16,5 +16,21 @@ namespace dalYY
         {
             InitializeComponent();
         }
+
+        public void UpdateInstances(List<YYInstance> list)
+        {
+            var node = InstancesView.Nodes[0];
+            node.Nodes.Clear();
+            for (int i = 0; i < list.Count; i++)
+            {
+                var inst = list[i];
+                var item = node.Nodes.Add(inst.ToString());
+                var bnvarnode = item.Nodes.Add("< Built-in Variables >");
+                for (int j = 0; j < inst.BuiltinVariables.Count; i++)
+                {
+                    bnvarnode.Nodes.Add(inst.BuiltinVariables[j].ToString());
+                }
+            }
+        }
     }
 }
