@@ -7,12 +7,34 @@ using System.Threading.Tasks;
 
 namespace dalYY
 {
+    public enum Platform : int
+    {
+        Win32,
+        Mac,
+        PSP,
+        IOS,
+        Android,
+        Symbian,
+        Linux,
+        WinPhone,
+        Tizen,
+        Win8Native,
+        WiiU,
+        N3DS,
+        PSVita,
+        BB10,
+        PS4,
+        XboxOne,
+        PS3
+    }
+
     public class GameLayout
     {
         private const int GAMELAYOUT_VERSION = 9;
 
-        public int PlatformCode { get; set; }
+        public Platform PlatformCode { get; set; }
         public YYDebug GameYYDebug { get; set; }
+        public List<YYObject> Objects { get; set; }
 
         public bool Load(byte[] dat)
         {
@@ -38,7 +60,7 @@ namespace dalYY
                 return false;
             }
 
-            PlatformCode = reader.ReadInt32();
+            PlatformCode = (Platform)reader.ReadInt32();
 
             // And now, the fun part begins. Where we load the actual data.
 
@@ -56,12 +78,13 @@ namespace dalYY
             }
             Read_OBJT(reader);
 
+            
             if (ReadString(reader) != "TRCS")
             {
                 Console.WriteLine("Wrong chunk name. Expected SCRT");
                 return false;
             }
-
+            Read_SCRT(reader);
 
 
             return true;
@@ -73,9 +96,38 @@ namespace dalYY
             return Encoding.ASCII.GetString(dat);
         }
 
-        private void Read_OBJT(BinaryReader reader)
+        private void Read_SCRT(BinaryReader reader)
         {
 
+        }
+
+        private void Read_OBJT(BinaryReader reader)
+        {
+            int len = reader.ReadInt32();
+            Objects = new List<YYObject>(len);
+            for (int i = 0; i < len; i++)
+            {
+                var obj = new YYObject();
+                obj.ID = reader.ReadInt32();
+                obj.Flags = reader.ReadInt32();
+                obj.SpriteIndex = reader.ReadInt32();
+                obj.MaskIndex = reader.ReadInt32();
+                obj.Depth = reader.ReadInt32();
+                obj.Parent = reader.ReadInt32();
+                obj.Name = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
+                obj.Events = new List<YYEvent>[15];
+                for (int j = 0; j <= 14; i++)
+                {
+                    obj.Events[j] = new List<YYEvent>();
+                    int ev_len = reader.ReadInt32();
+                    for (int k = 0; k < ev_len; k++)
+                    {
+                        var ev = new YYEvent();
+                        //..
+                        obj.Events[j].Add(ev);
+                    }
+                }
+            }
         }
 
         private void Read_VMCode(BinaryReader reader)

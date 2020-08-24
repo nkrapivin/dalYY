@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -84,7 +85,7 @@ namespace dalYY
 		private byte[] CommData { get; set; }
 		private byte[] HeaderData { get; set; }
 		private MemoryStream HeaderStream { get; set; }
-		private BinaryReader HeaderReader { get; set; }
+		public BinaryReader HeaderReader { get; set; }
 		private GameLayout GLData { get; set; }
 		public YYDebug YYDbg { get; set; }
 
@@ -92,7 +93,7 @@ namespace dalYY
 		{
 			if (Sender != null)
 			{
-				return Sender.Connected;
+				return Sender.Connected && State == RunnerSocketState.Connected;
 			}
 			return false;
 		}
@@ -121,7 +122,33 @@ namespace dalYY
 			return arr;
 		}
 
-		private bool SendCommand(params int[] Command)
+		public bool SendBuffer(byte[] buf)
+        {
+			if (State != RunnerSocketState.Connected)
+				return false;
+			if (buf.Length < 1)
+				return false;
+
+			int tries = 4;
+			while (tries > 0)
+            {
+				try
+                {
+					Sender.Send(buf, 0, buf.Length, SocketFlags.None);
+					tries = 0;
+                }
+				catch
+                {
+					tries--;
+                }
+            }
+
+			if (tries < 0) return false;
+
+			return true;
+        }
+
+		public bool SendCommand(params int[] Command)
         {
 			if (State != RunnerSocketState.Connected)
 				return false;
@@ -134,6 +161,14 @@ namespace dalYY
 			pk.Size = Marshal.SizeOf(pk);
 			pk.PacketSize = pk.Size;
 			pk.Command = (RunnerCommand)Command[0];
+			if (Command.Length > 1) pk.Arg1 = (uint)Command[1];
+			if (Command.Length > 2) pk.Arg2 = (uint)Command[2];
+			if (Command.Length > 3) pk.Arg3 = (uint)Command[3];
+			if (Command.Length > 4) pk.Arg4 = (uint)Command[4];
+			if (Command.Length > 5) pk.Arg5 = (uint)Command[5];
+			if (Command.Length > 6) pk.Arg6 = (uint)Command[6];
+			if (Command.Length > 7) pk.Arg7 = (uint)Command[7];
+
 			byte[] data = getBytes(pk);
 			int tries = 4;
 			while (tries > 0)
@@ -166,8 +201,9 @@ namespace dalYY
 			try
             {
 				int dataRec = Sender.Receive(HeaderData, 0, 8, SocketFlags.None);
+				HeaderReader.BaseStream.Seek(0, SeekOrigin.Begin);
 				uint dataHeader = HeaderReader.ReadUInt32();
-				uint dataSize = HeaderReader.ReadUInt32() - 8;
+				int dataSize = HeaderReader.ReadInt32() - 8;
 				if (dataRec != 8)
                 {
 					Console.WriteLine("Failed to read packet header!");
@@ -184,7 +220,7 @@ namespace dalYY
 
 						while (num < dataSize)
                         {
-							dataRec = Sender.Receive(HeaderData, num, (int)(dataSize - num), SocketFlags.None);
+							dataRec = Sender.Receive(HeaderData, num, dataSize - num, SocketFlags.None);
 							num += dataRec;
 							if (dataRec > 0) continue;
 							break;
@@ -195,7 +231,10 @@ namespace dalYY
 						State = RunnerSocketState.Error;
 						return 0;
 					}
-					
+					else
+                    {
+						Console.WriteLine("Wrong packet header!");
+                    }
                 }
 
             }
@@ -204,18 +243,37 @@ namespace dalYY
 			return 0;
         }
 
-		public RunnerConnErr Connect(string _host, int _port)
+		public byte[] GetCommandResult()
+        {
+			int len = Recieve();
+			if (len > 0)
+            {
+				byte[] _out = new byte[len];
+				for (int i = 0; i < len; i++) _out[i] = HeaderData[i];
+				return _out;
+            }
+
+			return null;
+        }
+
+		public RunnerConnErr Connect(string _host, int _port, BackgroundWorker worker = null)
 		{
 			Sender = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
 			try
             {
+				worker?.ReportProgress(0, "Setting up socket...");
 				CommData = new byte[1048576];
 				Sender.ReceiveTimeout = -1;
 				Sender.SendTimeout = 1000;
 				Sender.Connect(_host, _port);
+
+				worker?.ReportProgress(0, "Connecting...");
+
 				int len = Sender.Receive(CommData);
 				string hello = Encoding.ASCII.GetString(CommData, 0, len - 1);
+
+				worker?.ReportProgress(0, "Recieved hello!");
 				if (hello != "GM:Studio-Connect")
                 {
 					Sender.Disconnect(false);
@@ -225,6 +283,7 @@ namespace dalYY
 					return RunnerConnErr.LoginError;
 				}
 
+				worker?.ReportProgress(0, "Logging in...");
 				var loginPacket = new RunnerLoginPacket();
 				loginPacket.SIG1 = RunnerLoginPacket.NETWORK_SIG1;
 				loginPacket.SIG2 = RunnerLoginPacket.NETWORK_SIG2;
@@ -234,38 +293,87 @@ namespace dalYY
 				byte[] data = getBytes(loginPacket);
 				Sender.Send(data, 0, loginPacket.Size, SocketFlags.None);
 
+				worker?.ReportProgress(0, "Sent login packet");
+
 				len = Sender.Receive(CommData);
 				State = RunnerSocketState.Connected;
+
+				worker?.ReportProgress(0, "Sending GetGameData packet.");
 				if (!SendCommand((int)RunnerCommand.GetGameData))
                 {
 					throw new Exception("Could not send GetGameData command!");
                 }
 
-				HeaderData = new byte[268435456];
+				HeaderData = new byte[1048576 * 2];
 				HeaderStream = new MemoryStream(HeaderData);
 				HeaderReader = new BinaryReader(HeaderStream);
 
 				len = Recieve();
 				if (len > 0)
 				{
+					worker?.ReportProgress(0, "Loading game layout...");
 					byte[] glDat = new byte[len];
 					for (var i = 0; i < len; i++) glDat[i] = HeaderData[i];
-					File.WriteAllBytes("gameLayout.iff", glDat);
 					GLData = new GameLayout();
 					GLData.GameYYDebug = YYDbg;
 					if (!GLData.Load(glDat))
 					{
-						Console.WriteLine("Failed to parse GameLayout structure. Is your internet weird?");
-						Console.WriteLine("PS: meow!");
+						worker?.ReportProgress(0, "Failed to parse game layout");
+						State = RunnerSocketState.Error;
+						if (Sender.Connected) Sender.Disconnect(false);
+						return RunnerConnErr.InvalidGameStructure;
 					}
-					else
-						Console.WriteLine("GameLayout Loaded!");
+					worker?.ReportProgress(0, "Game layout parsed ok.");
 				}
 			}
-			catch { }
+			catch (ArgumentNullException e)
+			{
+				worker?.ReportProgress(0, $"Argument is null! {e.Message}");
+				State = RunnerSocketState.Error;
+				if (Sender.Connected) Sender.Disconnect(false);
+				return RunnerConnErr.NullArgument;
+			}
+			catch (SocketException e)
+            {
+				worker?.ReportProgress(0, $"Socket exception! {e.Message}");
+				State = RunnerSocketState.Error;
+				if (Sender.Connected) Sender.Disconnect(false);
+				return RunnerConnErr.SocketError;
+			}
+			catch (Exception e)
+            {
+				worker?.ReportProgress(0, $"General exception! {e.Message}");
+				State = RunnerSocketState.Error;
+				if (Sender.Connected) Sender.Disconnect(false);
+				return RunnerConnErr.GeneralException;
+			}
 
+			worker?.ReportProgress(0, "Done!");
+			for (int i = 0; i < HeaderData.Length; i++) HeaderData[i] = 0;
+			HeaderStream.Seek(0, SeekOrigin.Begin);
 			return RunnerConnErr.None;
 		}
+
+		public void Quit()
+        {
+			if (State == RunnerSocketState.None) return;
+
+			if (Sender != null)
+            {
+				State = RunnerSocketState.None;
+				Sender.Shutdown(SocketShutdown.Both);
+				Sender.Close();
+            }
+        }
+
+		public void Disconnect()
+        {
+			if (State != RunnerSocketState.None)
+            {
+				Sender.Disconnect(false);
+				State = RunnerSocketState.None;
+            }
+        }
 	}
 
 }

@@ -58,12 +58,15 @@
     <Compile Include="DebuggerForm.Designer.cs">
       <DependentUpon>DebuggerForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="DebuggerManager.cs" />
     <Compile Include="GameCodeBlob.cs" />
     <Compile Include="GameLayout.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RunnerSocket.cs" />
     <Compile Include="YYDebug.cs" />
+    <Compile Include="YYEvent.cs" />
+    <Compile Include="YYObject.cs" />
     <EmbeddedResource Include="ConnectionForm.resx">
       <DependentUpon>ConnectionForm.cs</DependentUpon>
     </EmbeddedResource>
