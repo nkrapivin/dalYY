@@ -11,6 +11,7 @@ namespace dalYY
         private const string CONF_FILE = "config.txt";
         private const string CONF_HEADER = "This is a 'Debugger a la YoYo' configuration file. Do not mess with it PLEASE.";
         private readonly string APPLICATION_DIR = AppDomain.CurrentDomain.BaseDirectory;
+        private bool DoQuitApp { get; set; }
 
         public ConnectionForm()
         {
@@ -20,6 +21,7 @@ namespace dalYY
         private void ConnectionForm_Shown(object sender, EventArgs e)
         {
             labelQuote.Text += GetRandomQuote();
+            DoQuitApp = true;
             if (Debugger.IsAttached) Text += " (Unlike YoYo, I don't care if you have a debugger)";
             LoadConfig(APPLICATION_DIR + CONF_FILE);
         }
@@ -81,7 +83,7 @@ namespace dalYY
                 // To Be Filled...
             };
 
-            var index = new Random().Next(0, quotes.Length - 1);
+            var index = new Random().Next(0, quotes.Length);
             return quotes[index];
         }
 
@@ -91,6 +93,7 @@ namespace dalYY
             var frm = new DebuggerForm();
             frm.SetParams(tbtIP.Text, (int)tbtPort.Value, tbtYYDebug.Text);
             frm.Show();
+            DoQuitApp = false;
             Close();
         }
 
@@ -111,6 +114,11 @@ namespace dalYY
                     MessageBox.Show("Could not open .yydebug file. Make sure the debugger can read files from the chosen directory!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private void ConnectionForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (DoQuitApp) Application.Exit();
         }
     }
 }

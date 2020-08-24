@@ -162,6 +162,7 @@
             this.MinimumSize = new System.Drawing.Size(723, 180);
             this.Name = "ConnectionForm";
             this.Text = "dalYY : Connection Setup";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.ConnectionForm_FormClosed);
             this.Shown += new System.EventHandler(this.ConnectionForm_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.tbtPort)).EndInit();
             this.ResumeLayout(false);
