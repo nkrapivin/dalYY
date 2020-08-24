@@ -15,6 +15,12 @@ namespace dalYY
         public byte[] BytecodeBlob { get; set; }
     }
 
+    public struct BCMapping
+    {
+        public uint BCOffset;
+        public uint SCOffset;
+    }
+
     public class YYDebug
     {
         private void Trace(string msg) => Debug.WriteLine(msg);
@@ -33,7 +39,7 @@ namespace dalYY
         private List<string> Names { get; set; }
 
         public List<YYScript> Scripts { get; set; }
-        public Dictionary<uint, uint> BytecodeMappings { get; private set; }
+        public List<BCMapping> BytecodeMappings { get; private set; }
 
         public YYDebug(Stream stream)
         {
@@ -126,7 +132,7 @@ namespace dalYY
             Trace("Chunk length " + chunkLen);
 
             int len = Reader.ReadInt32();
-            BytecodeMappings = new Dictionary<uint, uint>(len);
+            BytecodeMappings = new List<BCMapping>(len);
             Trace("Reading " + len + " mappings");
             for (int i = 0; i < len; i++)
             {
@@ -141,7 +147,10 @@ namespace dalYY
 
             uint bcOffset = Reader.ReadUInt32();
             uint scOffset = Reader.ReadUInt32();
-            BytecodeMappings.Add(bcOffset, scOffset);
+            var bc = new BCMapping();
+            bc.BCOffset = bcOffset;
+            bc.SCOffset = scOffset;
+            BytecodeMappings.Add(bc);
 
             Reader.BaseStream.Seek(prev_addr, SeekOrigin.Begin);
         }

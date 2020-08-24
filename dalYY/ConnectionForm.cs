@@ -54,7 +54,7 @@ namespace dalYY
                 conf += CONF_HEADER + Environment.NewLine;
                 conf += CONF_VERSION.ToString() + Environment.NewLine;
                 conf += tbtIP.Text + Environment.NewLine;
-                conf += tbtPort.Text + Environment.NewLine;
+                conf += tbtPort.Value.ToString() + Environment.NewLine;
                 conf += tbtYYDebug.Text + Environment.NewLine;
                 conf += "RESERVED1" + Environment.NewLine;
                 conf += "RESERVED2" + Environment.NewLine;
@@ -77,6 +77,7 @@ namespace dalYY
                 "#australiaDoesExist",
                 "huh, a debugger?",
                 "0% bad code (hopefully)",
+                "Unsupported protocol version, got 12, expected NEIN!"
                 // To Be Filled...
             };
 
@@ -88,7 +89,7 @@ namespace dalYY
         {
             SaveConfig(APPLICATION_DIR + CONF_FILE);
             var frm = new DebuggerForm();
-            frm.SetParams(tbtIP.Text, int.Parse(tbtPort.Text), tbtYYDebug.Text);
+            frm.SetParams(tbtIP.Text, (int)tbtPort.Value, tbtYYDebug.Text);
             frm.Show();
             Close();
         }

@@ -33,11 +33,12 @@
             this.labelPort = new System.Windows.Forms.Label();
             this.buttonConnect = new System.Windows.Forms.Button();
             this.tbtIP = new System.Windows.Forms.TextBox();
-            this.tbtPort = new System.Windows.Forms.TextBox();
             this.tbtYYDebug = new System.Windows.Forms.TextBox();
             this.btnChooseFile = new System.Windows.Forms.Button();
             this.labelQuote = new System.Windows.Forms.Label();
             this.openYYDebugDialog = new System.Windows.Forms.OpenFileDialog();
+            this.tbtPort = new System.Windows.Forms.NumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)(this.tbtPort)).BeginInit();
             this.SuspendLayout();
             // 
             // labelIP
@@ -89,18 +90,6 @@
             this.tbtIP.TabIndex = 4;
             this.tbtIP.Text = "127.0.0.1";
             // 
-            // tbtPort
-            // 
-            this.tbtPort.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbtPort.Location = new System.Drawing.Point(133, 54);
-            this.tbtPort.MaxLength = 5;
-            this.tbtPort.Name = "tbtPort";
-            this.tbtPort.Size = new System.Drawing.Size(562, 20);
-            this.tbtPort.TabIndex = 5;
-            this.tbtPort.Text = "6502";
-            // 
             // tbtYYDebug
             // 
             this.tbtYYDebug.Location = new System.Drawing.Point(133, 80);
@@ -136,15 +125,35 @@
             this.openYYDebugDialog.Filter = "Debugger Files|*.yydebug|All Files|*.*";
             this.openYYDebugDialog.Title = "Choose your .yydebug file...";
             // 
+            // tbtPort
+            // 
+            this.tbtPort.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tbtPort.Location = new System.Drawing.Point(133, 54);
+            this.tbtPort.Maximum = new decimal(new int[] {
+            65535,
+            0,
+            0,
+            0});
+            this.tbtPort.Name = "tbtPort";
+            this.tbtPort.Size = new System.Drawing.Size(562, 20);
+            this.tbtPort.TabIndex = 9;
+            this.tbtPort.Value = new decimal(new int[] {
+            6502,
+            0,
+            0,
+            0});
+            // 
             // ConnectionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(707, 141);
+            this.Controls.Add(this.tbtPort);
             this.Controls.Add(this.labelQuote);
             this.Controls.Add(this.btnChooseFile);
             this.Controls.Add(this.tbtYYDebug);
-            this.Controls.Add(this.tbtPort);
             this.Controls.Add(this.tbtIP);
             this.Controls.Add(this.buttonConnect);
             this.Controls.Add(this.labelPort);
@@ -154,6 +163,7 @@
             this.Name = "ConnectionForm";
             this.Text = "dalYY : Connection Setup";
             this.Shown += new System.EventHandler(this.ConnectionForm_Shown);
+            ((System.ComponentModel.ISupportInitialize)(this.tbtPort)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -166,11 +176,11 @@
         private System.Windows.Forms.Label labelPort;
         private System.Windows.Forms.Button buttonConnect;
         private System.Windows.Forms.TextBox tbtIP;
-        private System.Windows.Forms.TextBox tbtPort;
         private System.Windows.Forms.TextBox tbtYYDebug;
         private System.Windows.Forms.Button btnChooseFile;
         private System.Windows.Forms.Label labelQuote;
         private System.Windows.Forms.OpenFileDialog openYYDebugDialog;
+        private System.Windows.Forms.NumericUpDown tbtPort;
     }
 }
 
