@@ -47,6 +47,8 @@ namespace dalYY
         public Dictionary<int, string> Variables { get; set; }
         public Dictionary<string, Dictionary<int, string>> LocalVariables { get; set; }
         public List<string> Strings { get; set; }
+        public List<YYRoom> Rooms { get; set; }
+        public List<YYTimeline> Timelines { get; set; }
 
         public bool Load(byte[] dat)
         {
@@ -123,15 +125,61 @@ namespace dalYY
 
         private void Read_TimelineCode(BinaryReader reader)
         {
+            int len = reader.ReadInt32();
+            if (len <= 0) return;
 
+            Timelines = new List<YYTimeline>(len);
+            for (int i = 0; i < len; i++)
+            {
+                string name = Read_String(reader);
+                int numSteps = reader.ReadInt32();
+                var timeline = new YYTimeline(i, numSteps);
+                timeline.Name = name;
+                Timelines.Add(timeline);
+
+                for (int j = 0; j < numSteps; j++)
+                {
+                    int step = reader.ReadInt32();
+                    int index = reader.ReadInt32();
+                    ulong bcAddr = reader.ReadUInt64();
+                    var script = GameYYDebug.Scripts[index];
+                    script.BaseAddr = bcAddr;
+                    //script.Name = $"Step {step}";
+                    script.Type = YYScriptType.TimelineAction;
+                    timeline.Scripts.Add(script);
+                }
+            }
         }
 
         private void Read_CreationCode(BinaryReader reader)
         {
             int len = reader.ReadInt32();
+            Rooms = new List<YYRoom>(len);
             for (int i = 0; i < len; i++)
             {
                 string name = Read_String(reader);
+                var room = new YYRoom(name);
+                Rooms.Add(room);
+                uint index = reader.ReadUInt32();
+                if (index != uint.MaxValue)
+                {
+                    var script = GameYYDebug.Scripts[(int)index];
+                    script.BaseAddr = reader.ReadUInt64();
+                    script.Name = $"{name}.RoomCreationCode";
+                    script.Type = YYScriptType.RoomCreation;
+                    room.Scripts.Add(script);
+                }
+                int length = reader.ReadInt32();
+                for (int j = 0; j < length; j++)
+                {
+                    index = reader.ReadUInt32();
+                    var script = GameYYDebug.Scripts[(int)index];
+                    script.BaseAddr = reader.ReadUInt64();
+                    script.Name = Read_String(reader);
+                    reader.ReadUInt32();
+                    script.Type = YYScriptType.InstanceCreation;
+                    room.Scripts.Add(script);
+                }
             }
         }
 

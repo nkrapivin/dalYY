@@ -25,6 +25,7 @@ namespace dalYY
         public uint UnknownIndex { get; set; }
         public int ScriptIndex { get; set; }
         public byte[] BytecodeBlob { get; set; }
+        public ulong BaseAddr { get; set; }
     }
 
     public struct BCMapping

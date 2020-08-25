@@ -18,6 +18,7 @@ namespace dalYY
 
         public bool IsRecording { get; set; }
         public bool MaxRoomSpeed { get; set; }
+        public GameLayout RunnerLayout { get; set; }
 
         private bool IsBatching { get; set; }
         private long BatchSizeOff { get; set; }
@@ -120,6 +121,16 @@ namespace dalYY
             return ret;
         }
 
+        public GMValue ReadGMValueFromBuffer(BinaryReader reader, out string _name)
+        {
+            int var_id = reader.ReadInt32();
+            RunnerLayout.Variables.TryGetValue(var_id, out _name);
+            if (_name == null) _name = "<unknown>";
+            var ___ret = new GMValue();
+            ___ret.ReadFromBuffer(reader);
+            return ___ret;
+        }
+
         public void ReadGlobals(BinaryReader reader)
         {
             Globals.Clear();
@@ -128,7 +139,8 @@ namespace dalYY
             {
                 for (int i = 0; i < len; i++)
                 {
-
+                    GMValue val = ReadGMValueFromBuffer(reader, out _);
+                    Globals.Add(val);
                 }
             }
         }
