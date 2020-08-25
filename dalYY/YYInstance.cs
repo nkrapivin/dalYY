@@ -16,24 +16,38 @@ namespace dalYY
         public List<GMValue> BuiltinVariables { get; private set; }
         public List<GMValue> InstVariables { get; private set; }
 
-        public void Serialize(BinaryReader reader)
+        public YYInstance()
+        {
+            BuiltinVariables = new List<GMValue>();
+        }
+
+        public YYInstance(BinaryReader reader, GameLayout lay)
         {
             ID = reader.ReadUInt32();
+            uint objind = reader.ReadUInt32();
+            ObjectRef = lay.Objects[(int)objind];
+            ObjectName = ObjectRef.Name;
+        }
+
+        public void Deserialize(BinaryReader reader, DebuggerManager manager)
+        {
+            ID = reader.ReadUInt32();
+            BuiltinVariables = new List<GMValue>();
             ReadBuiltins(reader);
             uint custom_var_len = reader.ReadUInt32();
             InstVariables = new List<GMValue>((int)custom_var_len);
             for (int i = 0; i < custom_var_len; i++)
             {
-                string _name = "";
-                var _val = new GMValue();
-                _val.ReadFromBuffer(reader);
+                var _val = manager.ReadGMValueFromBuffer(reader);
                 InstVariables.Add(_val);
             }
+            int obj_index = (int)BuiltinVariables.Where(v => v.Name == "object_index").First().Number;
+            ObjectRef = manager.RunnerLayout.Objects[obj_index];
+            ObjectName = ObjectRef.Name;
         }
 
         private void ReadBuiltins(BinaryReader reader)
         {
-            BuiltinVariables = new List<GMValue>();
             AddBuiltin("object_index", reader.ReadUInt32());
             AddBuiltin("x", reader.ReadSingle());
             AddBuiltin("y", reader.ReadSingle());
@@ -107,7 +121,7 @@ namespace dalYY
         {
             var __value = new GMValue
             {
-                ValType = GMValue.GMValueType.Real,
+                ValType = GMValue.GMValueType.Bool,
                 Number = value ? 1 : 0,
                 Name = var_name
             };

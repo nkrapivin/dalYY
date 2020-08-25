@@ -26,6 +26,7 @@ namespace dalYY
         private DebugOutputForm DOF { get; set; }
         private ConnectionOutputForm COF { get; set; }
         private AllInstancesForm AIF { get; set; }
+        private TexturesForm TSF { get; set; }
 
         private void Trace(string msg) => COF.Trace(msg);
 
@@ -73,6 +74,10 @@ namespace dalYY
             AIF = new AllInstancesForm();
             AIF.MdiParent = this;
             AIF.Show();
+
+            TSF = new TexturesForm();
+            TSF.MdiParent = this;
+            TSF.Show();
         }
 
         private void Connect()
@@ -93,13 +98,14 @@ namespace dalYY
 
             if (ret == RunnerConnErr.None)
             {
+                Manager.RunnerLayout = DebugSocket.GLData;
                 DebugSocket.SendCommand((int)RunnerCommand.StartTarget);
                 DebugSocket.Recieve();
                 while (true)
                 {
                     var is_run_ret = Manager.IsRunning();
                     Manager.Update(is_run_ret);
-
+                    Manager.UpdateAllInstanceVars();
 
                     // "All Instances"
 
@@ -129,7 +135,7 @@ namespace dalYY
         {
             STF.SetStats(Manager.FPS, Manager.UsedMem, Manager.FreeMem, DebugSocket.State);
             DOF.SetText(Manager.DebugOutput);
-            AIF.UpdateInstances(Manager.AllInstances);
+            
         }
 
         private void DebuggerForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -150,6 +156,12 @@ namespace dalYY
         private void restartToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Manager.RestartRunner();
+        }
+
+        private void updateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Manager.Update(Manager.IsRunning());
+            AIF.UpdateInstances(Manager.AllInstances);
         }
     }
 }

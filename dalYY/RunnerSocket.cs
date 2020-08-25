@@ -86,7 +86,7 @@ namespace dalYY
 		private byte[] HeaderData { get; set; }
 		private MemoryStream HeaderStream { get; set; }
 		public BinaryReader HeaderReader { get; set; }
-		private GameLayout GLData { get; set; }
+		public GameLayout GLData { get; private set; }
 		public YYDebug YYDbg { get; set; }
 
 		public bool IsSenderConnected()

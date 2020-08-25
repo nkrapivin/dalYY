@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -51,22 +52,27 @@ namespace dalYY
         {
             switch (ValType)
             {
+				case GMValueType.Undefined:
 				case GMValueType.String:
-                    {
-						return $"{Name} | {String}";
-                    }
+					return $"{Name} | {String}";
+				case GMValueType.Pointer:
+					return $"{Name} | {Pointer:X} | <pointer>";	
+				case GMValueType.Array:
+					return $"{Name} | {Pointer:X} | <pointer to an array>";
+				case GMValueType.Int64:
+                    return $"{Name} | {(long)Pointer} | <int64>";
+				case GMValueType.Bool:
+					return $"{Name} | {Number != 0} | <boolean>";
 				default:
-                    {
-						return $"{Name} | {Number}";
-                    }
+					return $"{Name} | {Number}";
             }
         }
 
 		public string ReadStringUTF8(BinaryReader reader)
 		{
 			int len = reader.ReadInt32();
-			string _out = Encoding.UTF8.GetString(reader.ReadBytes(len));
-			reader.ReadByte(); // 0x00
+			string _out = Encoding.UTF8.GetString(reader.ReadBytes(--len));
+			Debug.Assert(reader.ReadByte() == 0); // 0x00
 			return _out;
 		}
 
@@ -86,6 +92,9 @@ namespace dalYY
 				case GMValueType.Object:
 				case GMValueType.Int64:
 					Pointer = reader.ReadUInt64();
+					break;
+				case GMValueType.Int32:
+					Number = reader.ReadInt32();
 					break;
 				case GMValueType.Undefined:
 					String = "<undefined>";

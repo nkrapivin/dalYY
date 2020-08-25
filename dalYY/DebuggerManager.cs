@@ -19,6 +19,7 @@ namespace dalYY
         public bool IsRecording { get; set; }
         public bool MaxRoomSpeed { get; set; }
         public GameLayout RunnerLayout { get; set; }
+        public DSManager DataStructManager { get; set; }
 
         private bool IsBatching { get; set; }
         private long BatchSizeOff { get; set; }
@@ -95,21 +96,34 @@ namespace dalYY
             }
         }
 
+        public bool UpdateAllInstanceVars()
+        {
+            BeginBatch();
+            AddCommand(RunnerCommand.GetInstanceData);
+            EndBatch();
+            SendBatch();
+            bool ret = Recieve();
+
+            if (ret) ReadResults();
+
+            return ret;
+        }
+
         public void ReadInstanceResults(BinaryReader reader)
         {
             int len = reader.ReadInt32();
             for (int i = 0; i < len; i++)
             {
+                uint instID = reader.ReadUInt32();
                 bool exists = reader.ReadInt32() != 0;
                 if (exists)
                 {
-                    var __inst = new YYInstance();
-                    __inst.Serialize(reader);
-                    AllInstances.Add(__inst);
+                    var __inst = AllInstances.Where(inst => inst.ID == instID).First();
+                    __inst.Deserialize(reader, this);
                 }
                 else
                 {
-                    Console.WriteLine("No instance exists for ID " + i.ToString());
+                    Console.WriteLine("No instance exists for ID " + instID.ToString());
                 }
             }
         }
@@ -121,13 +135,21 @@ namespace dalYY
             return ret;
         }
 
-        public GMValue ReadGMValueFromBuffer(BinaryReader reader, out string _name)
+        public GMValue ReadGMValueFromBuffer(BinaryReader reader)
         {
             int var_id = reader.ReadInt32();
-            RunnerLayout.Variables.TryGetValue(var_id, out _name);
-            if (_name == null) _name = "<unknown>";
+            string name = "<unknown>";
+            if (RunnerLayout.Variables.ContainsKey(var_id))
+            {
+                name = RunnerLayout.Variables[var_id];
+            }
+            else
+            {
+                Debug.Assert(false);
+            }
             var ___ret = new GMValue();
             ___ret.ReadFromBuffer(reader);
+            ___ret.Name = name;
             return ___ret;
         }
 
@@ -139,22 +161,44 @@ namespace dalYY
             {
                 for (int i = 0; i < len; i++)
                 {
-                    GMValue val = ReadGMValueFromBuffer(reader, out _);
+                    GMValue val = ReadGMValueFromBuffer(reader);
                     Globals.Add(val);
+                    Console.WriteLine(val);
                 }
+            }
+        }
+
+        public void ReadDataStructures(BinaryReader reader)
+        {
+            for (int i = 0; i < 6; i++) reader.ReadUInt32();
+            // NOT IMPLEMENTED!!!
+        }
+
+        public void ReadInstanceIDs(BinaryReader reader)
+        {
+            AllInstances.Clear();
+            uint len = reader.ReadUInt32();
+            //Console.WriteLine("instlen: " + len);
+            for (int i = 0; i < len; i++)
+            {
+                var inst = new YYInstance(reader, RunnerLayout);
+                AllInstances.Add(inst);
+                Console.WriteLine(inst.ToString());
             }
         }
 
         public bool ReadRunningUpdate(BinaryReader reader)
         {
             //Console.WriteLine("ReadRunningUpdate()");
-
+            ReadGlobals(reader);
+            ReadDataStructures(reader);
+            ReadInstanceIDs(reader);
             return true;
         }
 
         public bool ReadStoppedUpdate(BinaryReader reader)
         {
-            //Console.WriteLine("ReadStoppedUpdate()");
+            Console.WriteLine("ReadStoppedUpdate()");
 
             return true;
         }
@@ -192,8 +236,11 @@ namespace dalYY
         {
             if (!run) return false;
 
+            int num = 0;
+            num |= 0x10;
+            num |= 1;
             BeginBatch();
-            AddCommand(RunnerCommand.GetUpdate, 0x20);
+            AddCommand(RunnerCommand.GetUpdate, num);
             EndBatch();
             SendBatch();
             bool ret = Recieve();
@@ -270,7 +317,11 @@ namespace dalYY
                         {
                             BatchCmdCount++;
                             BatchWriter.Write((int)RunnerCommand.GetInstanceData);
-
+                            BatchWriter.Write(AllInstances.Count);
+                            for (int i = 0; i < AllInstances.Count; i++)
+                            {
+                                BatchWriter.Write(AllInstances[i].ID);
+                            }
                             break;
                         }
                 }

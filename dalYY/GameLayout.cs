@@ -312,6 +312,9 @@ namespace dalYY
                         obj.Events[j].Add(ev);
                     }
                 }
+
+
+                Objects.Add(obj);
             }
         }
 
