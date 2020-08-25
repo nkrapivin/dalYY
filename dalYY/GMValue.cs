@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace dalYY
 {
@@ -28,6 +30,8 @@ namespace dalYY
 			Invalid
 		}
 
+		// DID SOMEONE JUST SAID JSON!?!?!?!?!??!?!?!?!?!? JAAAAAAAAAAAAAAAAAAAAAAAAAYSOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONNNNNNNNNNNNNNNNNNNNNNNNNNNN!!!!!!!!!!!
+		// but if seriously these masks are used by the debugger, when you click "View As..." and then a corresponding Data Structure.
 		public enum GMJsonKind : uint
 		{
 			Mask = 4026531840u,
@@ -39,7 +43,8 @@ namespace dalYY
 		public GMValueType ValType { get; set; }
 		public double Number { get; set; }
 		public string String { get; set; }
-		public ulong ArrayPtr { get; set; }
+		public ulong Pointer { get; set; }
+		public bool IsUndefined { get; set; }
 		public GMJsonKind Tag { get; set; }
 
         public override string ToString()
@@ -54,6 +59,43 @@ namespace dalYY
                     {
 						return $"{Name} | {Number}";
                     }
+            }
+        }
+
+		public string ReadStringUTF8(BinaryReader reader)
+		{
+			int len = reader.ReadInt32();
+			string _out = Encoding.UTF8.GetString(reader.ReadBytes(len));
+			reader.ReadByte(); // 0x00
+			return _out;
+		}
+
+		public void ReadFromBuffer(BinaryReader reader)
+        {
+			uint typ = reader.ReadUInt32();
+			ValType = (GMValueType)(typ & 0xFFFFFFF);
+			IsUndefined = false;
+			switch (ValType)
+            {
+				case GMValueType.Real:
+				case GMValueType.Bool:
+					Number = reader.ReadDouble();
+					break;
+				case GMValueType.Array:
+				case GMValueType.Pointer:
+				case GMValueType.Object:
+				case GMValueType.Int64:
+					Pointer = reader.ReadUInt64();
+					break;
+				case GMValueType.Undefined:
+					String = "<undefined>";
+					Number = 0;
+					Pointer = 0;
+					IsUndefined = true;
+					break;
+				case GMValueType.String:
+					String = ReadStringUTF8(reader);
+					break;
             }
         }
     }

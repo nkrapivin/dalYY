@@ -28,6 +28,12 @@ namespace dalYY
         PS3
     }
 
+    public struct Keyword
+    {
+        public string Content;
+        public bool IsFunction;
+    }
+
     public class GameLayout
     {
         private const int GAMELAYOUT_VERSION = 9;
@@ -35,6 +41,12 @@ namespace dalYY
         public Platform PlatformCode { get; set; }
         public YYDebug GameYYDebug { get; set; }
         public List<YYObject> Objects { get; set; }
+
+        public ulong StringBasePointer { get; set; }
+        public List<Keyword> Keywords { get; set; }
+        public Dictionary<int, string> Variables { get; set; }
+        public Dictionary<string, Dictionary<int, string>> LocalVariables { get; set; }
+        public List<string> Strings { get; set; }
 
         public bool Load(byte[] dat)
         {
@@ -85,8 +97,117 @@ namespace dalYY
             }
             Read_SCRT(reader);
 
+            if (ReadString(reader) != "CNUF")
+            {
+                Console.WriteLine("Wrong chunk name. Expected FUNC");
+                return false;
+            }
+            Read_FUNC(reader);
+
+            if (ReadString(reader) != "DOCC")
+            {
+                Console.WriteLine("Wrong chunk name. Expected CCOD");
+                return false;
+            }
+            Read_CreationCode(reader);
+
+            if (ReadString(reader) != "NLMT")
+            {
+                Console.WriteLine("Wrong chunk name. Expected TMLN");
+                return false;
+            }
+            Read_TimelineCode(reader);
 
             return true;
+        }
+
+        private void Read_TimelineCode(BinaryReader reader)
+        {
+
+        }
+
+        private void Read_CreationCode(BinaryReader reader)
+        {
+            int len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                string name = Read_String(reader);
+            }
+        }
+
+        private void Read_FUNC(BinaryReader reader)
+        {
+            int len;
+
+            Keywords = new List<Keyword>();
+            Variables = new Dictionary<int, string>();
+            LocalVariables = new Dictionary<string, Dictionary<int, string>>();
+            Strings = new List<string>();
+
+            // Built-in functions
+            len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                string keyword = Read_String(reader);
+                var _k = new Keyword() { Content = keyword, IsFunction = true };
+                Keywords.Add(_k);
+            }
+
+            // Built-in variables
+            len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                string keyword = Read_String(reader);
+                var _k = new Keyword() { Content = keyword, IsFunction = false };
+                Keywords.Add(_k);
+            }
+
+            // Internal variables
+            len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                int key = reader.ReadInt32();
+                string value = Read_String(reader);
+                var keyword = new Keyword() { Content = value, IsFunction = false };
+                Keywords.Add(keyword);
+                Variables.Add(key, value);
+            }
+
+            // Other variables??
+            len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                int key = reader.ReadInt32();
+                string value = Read_String(reader);
+                var keyword = new Keyword() { Content = value, IsFunction = false };
+                Keywords.Add(keyword);
+                Variables.Add(key, value);
+            }
+
+            // Local variables
+            len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                string codeEntry = Read_String(reader);
+                int length = reader.ReadInt32();
+                LocalVariables.Add(codeEntry, new Dictionary<int, string>());
+                for (int j = 0; j < length; j++)
+                {
+                    int key = reader.ReadInt32();
+                    string value = Read_String(reader);
+                    LocalVariables[codeEntry].Add(key, value);
+                    var keyword = new Keyword() { Content = value, IsFunction = false };
+                    Keywords.Add(keyword);
+                }
+            }
+
+            StringBasePointer = reader.ReadUInt64();
+            len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                string str = Read_String(reader);
+                Strings.Add(str);
+            }
         }
 
         private string ReadString(BinaryReader reader, int count = 4)
@@ -97,7 +218,24 @@ namespace dalYY
 
         private void Read_SCRT(BinaryReader reader)
         {
-
+            int len = reader.ReadInt32();
+            for (int i = 0; i < len; i++)
+            {
+                int index = reader.ReadInt32();
+                if (index >= 0)
+                {
+                    var _script = GameYYDebug.Scripts[index];
+                    var base_addr = reader.ReadUInt64();
+                    reader.ReadUInt64();
+                    string display_name = Read_String(reader);
+                    _script.Type = YYScriptType.Script;
+                    
+                }
+                else
+                {
+                    var _name = Read_String(reader);
+                }
+            }
         }
 
         private void Read_OBJT(BinaryReader reader)

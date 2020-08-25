@@ -6,8 +6,20 @@ using System.Text;
 
 namespace dalYY
 {
+    public enum YYScriptType
+    {
+        Unknown,
+        Script,
+        Object,
+        TimeLine,
+        RoomCreation,
+        InstanceCreation,
+        TimelineAction
+    }
+
     public class YYScript
     {
+        public YYScriptType Type { get; set; }
         public string Source { get; set; }
         public string Name { get; set; }
         public uint UnknownIndex { get; set; }

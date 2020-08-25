@@ -25,7 +25,9 @@ namespace dalYY
             for (int i = 0; i < custom_var_len; i++)
             {
                 string _name = "";
-
+                var _val = new GMValue();
+                _val.ReadFromBuffer(reader);
+                InstVariables.Add(_val);
             }
         }
 

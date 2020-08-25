@@ -33,12 +33,14 @@ namespace dalYY
         public string DebugOutput { get; set; }
 
         public List<YYInstance> AllInstances { get; set; }
+        public List<GMValue> Globals { get; set; }
 
         public DebuggerManager(RunnerSocket sck)
         {
             Socket = sck;
             DebugOutput = string.Empty;
             AllInstances = new List<YYInstance>();
+            Globals = new List<GMValue>();
         }
 
         
@@ -113,21 +115,34 @@ namespace dalYY
 
         public bool ReadUpdateResults(BinaryReader reader)
         {
-            bool flag = reader.ReadUInt32() != 0;
-            bool ret = (!flag) ? ReadRunningUpdate(reader) : ReadStoppedUpdate(reader);
+            bool update_kind = reader.ReadUInt32() != 0;
+            bool ret = (!update_kind) ? ReadRunningUpdate(reader) : ReadStoppedUpdate(reader);
             return ret;
+        }
+
+        public void ReadGlobals(BinaryReader reader)
+        {
+            Globals.Clear();
+            uint len = reader.ReadUInt32();
+            if (len != 0)
+            {
+                for (int i = 0; i < len; i++)
+                {
+
+                }
+            }
         }
 
         public bool ReadRunningUpdate(BinaryReader reader)
         {
-
+            //Console.WriteLine("ReadRunningUpdate()");
 
             return true;
         }
 
         public bool ReadStoppedUpdate(BinaryReader reader)
         {
-
+            //Console.WriteLine("ReadStoppedUpdate()");
 
             return true;
         }
