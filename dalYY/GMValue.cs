@@ -31,7 +31,7 @@ namespace dalYY
 			Invalid
 		}
 
-		// DID SOMEONE JUST SAID JSON!?!?!?!?!??!?!?!?!?!? JAAAAAAAAAAAAAAAAAAAAAAAAAYSOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONNNNNNNNNNNNNNNNNNNNNNNNNNNN!!!!!!!!!!!
+		// DID SOMEONE JUST SAY JSON!?!?!?!?!??!?!?!?!?!? JAAAAAAAAAAAAAAAAAAAAAAAAAYSOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONNNNNNNNNNNNNNNNNNNNNNNNNNNN!!!!!!!!!!!
 		// but if seriously these masks are used by the debugger, when you click "View As..." and then a corresponding Data Structure.
 		public enum GMJsonKind : uint
 		{
